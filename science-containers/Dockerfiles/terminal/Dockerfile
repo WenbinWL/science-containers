@@ -16,6 +16,7 @@ ENV SHELL=/bin/bash \
 # BUCKET 1: System Foundation (Pure CLI-only tools)
 RUN apt update \
     && apt install -y --no-install-recommends \
+    acl \
     bash \
     bash-completion \
     ca-certificates \
@@ -27,10 +28,12 @@ RUN apt update \
     openssh-client \
     python3 \
     python3-pip \
+    python3-scipy \
     python3-venv \
     rclone \
     tmux \
     vim-nox \
+    x11-xserver-utils \
     xterm \
  && curl -fsSL https://opencode.ai/install | bash \
  && mv /root/.opencode/bin/opencode /usr/local/bin/opencode \
@@ -56,9 +59,48 @@ RUN echo 'alias py="python3"' >> /etc/bash.bashrc \
  && echo 'shopt -s histappend' >> /etc/bash.bashrc \
  && echo 'PROMPT_COMMAND="history -a;$PROMPT_COMMAND"' >> /etc/bash.bashrc \
  && printf '\n# Persistent user configuration shared by terminal and Webterm sessions.\n[ -r /etc/profile.d/terminal.sh ] && . /etc/profile.d/terminal.sh\n' >> /etc/bash.bashrc \
- && printf 'scan_timeout = 1000\ncommand_timeout = 1000\npalette = "gruvbox"\n\n[palettes.gruvbox]\nbg0 = "#282828"\nyellow = "#d79921"\naqua = "#689d6a"\ngreen = "#98971a"\nred = "#cc241d"\n\n[username]\nshow_always = true\nstyle_user = "bg:yellow fg:bg0"\nstyle_root = "bg:red fg:bg0"\nformat = "[ $user ]($style)"\n\n[directory]\nstyle = "bg:aqua fg:bg0"\nformat = "[ $path ]($style)"\ntruncation_length = 0\ntruncate_to_repo = false\n\n[git_branch]\nsymbol = "git:"\nstyle = "bg:green fg:bg0"\nformat = "[ $symbol$branch ]($style)"\n\n[git_status]\ndisabled = true\n\n[container]\ndisabled = true\n\n[character]\nsuccess_symbol = "[ > ](bold green)"\nerror_symbol = "[ x ](bold red)"\n' > /etc/starship.toml
+ && cat > /etc/starship.toml <<'EOF'
+scan_timeout = 1000
+command_timeout = 1000
+add_newline = false
+palette = "gruvbox"
+
+# Username + path on line 1; prompt character on line 2 only (no git, versions, etc.)
+format = """
+$username\
+$directory\
+$line_break\
+$character"""
+
+right_format = ""
+
+[palettes.gruvbox]
+bg0 = "#282828"
+yellow = "#d79921"
+aqua = "#689d6a"
+green = "#98971a"
+red = "#cc241d"
+
+[username]
+show_always = true
+style_user = "bg:yellow fg:bg0"
+style_root = "bg:red fg:bg0"
+format = "[ $user ]($style)"
+
+[directory]
+style = "bg:aqua fg:bg0"
+format = "[ $path ]($style)"
+truncation_length = 0
+truncate_to_repo = false
+home_symbol = "~"
+
+[character]
+success_symbol = "[ > ](bold green)"
+error_symbol = "[ x ](bold red)"
+EOF
 
 COPY terminal.sh /etc/profile.d/terminal.sh
 RUN chmod 644 /etc/profile.d/terminal.sh
 
-CMD ["/bin/bash", "-c", "exec xterm -ls"]
+# xset -b: disable X keyboard bell; xterm +vb: no visual bell; bellIsUrgent: no WM urgency flash
+CMD ["/bin/bash", "-c", "xset -b 2>/dev/null; exec xterm -ls +vb -xrm 'XTerm*bellIsUrgent: false'"]
