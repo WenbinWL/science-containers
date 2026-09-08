@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 # Browser-based terminal for CANFAR contributed sessions.
-ARG BASE_IMAGE=images.canfar.net/skaha/terminal:latest
+ARG BASE_IMAGE=images.canfar.net/skaha/terminal:1.2.5
 FROM ${BASE_IMAGE}
 
 # ttyd is not packaged by Ubuntu.  Download its small static binary rather
