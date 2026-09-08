@@ -24,6 +24,7 @@ RUN apt update \
     git \
     htop \
     jq \
+    openssh-client \
     python3 \
     python3-pip \
     python3-venv \
@@ -54,6 +55,10 @@ RUN echo 'alias py="python3"' >> /etc/bash.bashrc \
  && echo 'export HISTFILE="${HOME}/.bash_history"' >> /etc/bash.bashrc \
  && echo 'shopt -s histappend' >> /etc/bash.bashrc \
  && echo 'PROMPT_COMMAND="history -a;$PROMPT_COMMAND"' >> /etc/bash.bashrc \
+ && printf '\n# Persistent user configuration shared by terminal and Webterm sessions.\n[ -r /etc/profile.d/canfar-terminal.sh ] && . /etc/profile.d/canfar-terminal.sh\n' >> /etc/bash.bashrc \
  && printf 'scan_timeout = 1000\ncommand_timeout = 1000\npalette = "gruvbox"\n\n[palettes.gruvbox]\nbg0 = "#282828"\nyellow = "#d79921"\naqua = "#689d6a"\ngreen = "#98971a"\nred = "#cc241d"\n\n[username]\nshow_always = true\nstyle_user = "bg:yellow fg:bg0"\nstyle_root = "bg:red fg:bg0"\nformat = "[ $user ]($style)"\n\n[directory]\nstyle = "bg:aqua fg:bg0"\nformat = "[ $path ]($style)"\ntruncation_length = 0\ntruncate_to_repo = false\n\n[git_branch]\nsymbol = "git:"\nstyle = "bg:green fg:bg0"\nformat = "[ $symbol$branch ]($style)"\n\n[git_status]\ndisabled = true\n\n[container]\ndisabled = true\n\n[character]\nsuccess_symbol = "[ > ](bold green)"\nerror_symbol = "[ x ](bold red)"\n' > /etc/starship.toml
+
+COPY shell-init.sh /etc/profile.d/canfar-terminal.sh
+RUN chmod 644 /etc/profile.d/canfar-terminal.sh
 
 CMD ["/bin/bash", "-c", "exec xterm -ls"]
